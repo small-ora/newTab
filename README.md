@@ -2,7 +2,6 @@
 
 一个极简、支持自定义图标和壁纸切换的 Chrome 新标签页扩展。
 
-![ChengStartPage Logo](logo.svg)
 
 ## 功能特性
 
