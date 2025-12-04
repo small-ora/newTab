@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的起始页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="clock-container">
+        <div id="clock" class="time">00:00:00</div>
+        <div id="date" class="date">Loading...</div>
+    </div>
+
+    <div class="search-container">
+        <div class="search-box">
+            <select id="searchEngine" class="engine-select">
+                <option value="bing">Bing</option>
+                <option value="google">Google</option>
+                <option value="baidu">百度</option>
+            </select>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search... (按 '/' 聚焦)" autocomplete="off">
+            <button class="search-btn" id="searchBtn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="app-grid" id="appGrid">
+        </div>
+
+    <button id="refreshWallpaper" class="refresh-wp-btn" title="切换壁纸">
+        <i class="fa-solid fa-image"></i>
+    </button>
+
+    <div id="appModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">添加图标</h3>
+            
+            <input type="text" id="appName" placeholder="名称 (例如: Bilibili)">
+            <input type="text" id="appUrl" placeholder="链接 (例如: https://bilibili.com)">
+            
+            <div class="icon-control-group">
+                <div class="input-header">
+                    <label>图标代码</label>
+                    <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" class="find-icon-link">
+                        去查找图标 <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+                
+                <div class="icon-input-wrapper">
+                    <input type="text" id="appIcon" placeholder="粘贴类名 (如: fa-brands fa-bilibili)">
+                    <div id="iconPreview" class="icon-preview-box">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </div>
+                </div>
+            </div>
+
+            <p class="hint">在 FontAwesome 复制类似 <code>fa-solid fa-home</code> 的代码粘贴即可</p>
+            
+            <div class="modal-buttons">
+                <button id="cancelBtn" class="btn-cancel">取消</button>
+                <button id="saveBtn" class="btn-save">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

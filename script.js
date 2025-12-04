@@ -1,0 +1,250 @@
+// --- 默认配置 (如果用户第一次使用) ---
+const defaultApps = [
+    { name: "天气", url: "https://weather.com/zh-CN/", content: "fa-solid fa-cloud-sun" },
+    { name: "Bilibili", url: "https://www.bilibili.com", content: "fa-brands fa-bilibili" },
+    { name: "GitHub", url: "https://github.com", content: "fa-brands fa-github" },
+    { name: "知乎", url: "https://www.zhihu.com", content: "fa-brands fa-zhihu" },
+    { name: "YouTube", url: "https://www.youtube.com", content: "fa-brands fa-youtube" },
+    { name: "ChatGPT", url: "https://chat.openai.com", content: "fa-solid fa-robot" },
+];
+
+let currentApps = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    initClock();
+    initSearch();
+    initApps();
+    initWallpaper();
+});
+
+// --- 1. 时钟功能 ---
+function initClock() {
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+        
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        document.getElementById('date').innerText = now.toLocaleDateString('zh-CN', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+}
+
+// --- 2. 搜索功能 ---
+function initSearch() {
+    const engineSelect = document.getElementById('searchEngine');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+
+    // 读取引擎设置
+    if(localStorage.getItem('defaultEngine')) {
+        engineSelect.value = localStorage.getItem('defaultEngine');
+    }
+
+    engineSelect.addEventListener('change', () => {
+        localStorage.setItem('defaultEngine', engineSelect.value);
+    });
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (!query) return;
+        
+        let url = '';
+        const engine = engineSelect.value;
+        if (engine === 'google') url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+        else if (engine === 'bing') url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+        else if (engine === 'baidu') url = `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`;
+        
+        window.location.href = url; // 在当前标签页打开，或者用 window.open
+    }
+
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
+    
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+// --- 3. 图标管理 (核心新功能) ---
+function initApps() {
+    // 1. 读取数据
+    chrome.storage.local.get(['apps'], (result) => {
+        if (result.apps && result.apps.length > 0) {
+            currentApps = result.apps;
+        } else {
+            currentApps = [...defaultApps];
+        }
+        renderApps();
+    });
+
+    // 2. 模态框按钮逻辑
+    const modal = document.getElementById('appModal');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // --- 新增：实时预览逻辑 START ---
+    const iconInput = document.getElementById('appIcon');
+    const iconPreview = document.querySelector('#iconPreview i');
+
+    // 监听输入框变化
+    iconInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        // 如果输入为空，显示默认问号；否则显示输入的图标
+        iconPreview.className = val || 'fa-solid fa-circle-question';
+    });
+    // --- 新增：实时预览逻辑 END ---
+
+    saveBtn.addEventListener('click', saveNewApp);
+    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+}
+
+function renderApps() {
+    const grid = document.getElementById('appGrid');
+    grid.innerHTML = '';
+
+    // 渲染现有图标
+    currentApps.forEach((app, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'app-item-wrapper';
+
+        // 删除按钮
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-btn';
+        delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        delBtn.onclick = (e) => {
+            e.stopPropagation(); // 防止触发跳转
+            deleteApp(index);
+        };
+
+        // 图标主体
+        const a = document.createElement('a');
+        a.className = 'app-item';
+        a.href = app.url;
+        
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'app-icon';
+        iconDiv.innerHTML = `<i class="${app.content}"></i>`;
+        
+        const span = document.createElement('span');
+        span.className = 'app-name';
+        span.innerText = app.name;
+
+        a.appendChild(iconDiv);
+        a.appendChild(span);
+        
+        wrapper.appendChild(delBtn);
+        wrapper.appendChild(a);
+        grid.appendChild(wrapper);
+    });
+
+    // 渲染 "添加" 按钮
+    const addWrapper = document.createElement('div');
+    addWrapper.className = 'app-item-wrapper add-item';
+    addWrapper.onclick = openAddModal;
+
+    const addIconDiv = document.createElement('div');
+    addIconDiv.className = 'app-icon';
+    addIconDiv.innerHTML = '<i class="fa-solid fa-plus"></i>';
+
+    const addSpan = document.createElement('span');
+    addSpan.className = 'app-name';
+    addSpan.innerText = '添加';
+
+    addWrapper.appendChild(addIconDiv);
+    addWrapper.appendChild(addSpan);
+    grid.appendChild(addWrapper);
+}
+
+function deleteApp(index) {
+    if (confirm('确定要删除这个图标吗？')) {
+        currentApps.splice(index, 1);
+        saveToStorage();
+        renderApps();
+    }
+}
+
+function openAddModal() {
+    document.getElementById('appName').value = '';
+    document.getElementById('appUrl').value = '';
+    
+    // 清空输入框并重置预览图标
+    const iconInput = document.getElementById('appIcon');
+    iconInput.value = '';
+    
+    // 重置为问号
+    document.querySelector('#iconPreview i').className = 'fa-solid fa-circle-question';
+    
+    document.getElementById('appModal').style.display = 'flex';
+    
+    // 自动聚焦第一个输入框
+    setTimeout(() => document.getElementById('appName').focus(), 100);
+}
+
+function saveNewApp() {
+    const name = document.getElementById('appName').value.trim();
+    let url = document.getElementById('appUrl').value.trim();
+    const icon = document.getElementById('appIcon').value.trim() || 'fa-solid fa-link';
+
+    if (!name || !url) {
+        alert('请输入名称和链接');
+        return;
+    }
+    
+    if (!url.startsWith('http')) {
+        url = 'https://' + url;
+    }
+
+    currentApps.push({ name, url, content: icon });
+    saveToStorage();
+    document.getElementById('appModal').style.display = 'none';
+    renderApps();
+}
+
+function saveToStorage() {
+    chrome.storage.local.set({ apps: currentApps });
+}
+
+// --- 4. 壁纸刷新功能 ---
+function initWallpaper() {
+    const refreshBtn = document.getElementById('refreshWallpaper');
+    
+    // 初始加载
+    setRandomWallpaper();
+
+    refreshBtn.addEventListener('click', () => {
+        // 添加旋转动画类
+        refreshBtn.style.transform = 'rotate(360deg)';
+        setTimeout(() => refreshBtn.style.transform = 'none', 300);
+        setRandomWallpaper();
+    });
+}
+
+function setRandomWallpaper() {
+    // Bing 接口支持 index 0-7，我们随机取一个
+    // 为了防止浏览器缓存导致图片不更新，我们加一个随机的时间戳参数
+    const randomIndex = Math.floor(Math.random() * 8); 
+    const timestamp = new Date().getTime();
+    const bgUrl = `https://bing.biturl.top/?resolution=1920&format=image&index=${randomIndex}&mkt=zh-CN&t=${timestamp}`;
+    
+    // 创建一个 img 对象预加载，防止背景闪烁白屏
+    const img = new Image();
+    img.src = bgUrl;
+    img.onload = () => {
+        document.body.style.backgroundImage = `url('${bgUrl}')`;
+    };
+}

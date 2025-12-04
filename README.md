@@ -1,157 +1,75 @@
-# New Tab - 自定义浏览器新标签页
+# ChengStartPage
 
-这是一个美观且实用的浏览器新标签页，具有时间显示、搜索引擎切换和常用网站快捷访问等功能。
+一个极简、支持自定义图标和壁纸切换的 Chrome 新标签页扩展。
 
-![预览图](https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=zh-CN)
+![ChengStartPage Logo](logo.svg)
 
 ## 功能特性
 
-### 1. 实时时钟
-- 显示当前时间（24小时制）
-- 显示详细日期信息（年月日及星期）
-- 秒级更新，确保时间准确
+- 🕐 实时时钟显示（包含日期）
+- 🔍 多搜索引擎支持（Bing、Google、百度）
+- 🖼️ 自动更换高清壁纸（来自必应每日精选）
+- 📱 自定义网站快捷方式（支持 Font Awesome 图标）
+- ⌨️ 快捷键支持（按 `/` 快速聚焦搜索框）
+- 📱 响应式设计，适配各种屏幕尺寸
+- 🌌 毛玻璃效果界面，美观现代
 
-### 2. 多搜索引擎支持
-- 支持 Bing、Google 和百度三种搜索引擎
-- 可通过下拉菜单快速切换搜索引擎
-- 搜索记录本地保存，下次打开时自动恢复上次使用的搜索引擎
-- 支持回车键快速搜索
-- 支持按下 `/` 键快速聚焦到搜索框
+## 安装方法
 
-### 3. 常用网站快捷访问
-提供12个常用网站的快捷入口：
-- 天气网
-- Google 日历
-- Bilibili
-- 微博
-- GitHub
-- 知乎
-- YouTube
-- ChatGPT
-- Gmail
-- 淘宝
-- X (Twitter)
-- V2EX
+### 方法一：从 Chrome 应用商店安装（推荐）
+1. 访问 Chrome 网上应用店
+2. 搜索 "ChengStartPage"
+3. 点击 "添加至 Chrome"
 
-### 4. 美观设计
-- 采用毛玻璃效果界面设计
-- 动态背景图片（每日 Bing 壁纸）
-- 响应式布局，适配不同屏幕尺寸
-- 图标悬停动画效果
+### 方法二：开发者模式安装
+1. 克隆或下载此仓库到本地
+2. 打开 Chrome 浏览器，在地址栏输入 `chrome://extensions/`
+3. 启用右上角的「开发者模式」
+4. 点击「加载已解压的扩展程序」
+5. 选择本项目所在的文件夹
 
-## 技术实现
+## 使用说明
 
-### 主要技术栈
+### 搜索功能
+- 在搜索框中输入关键词进行搜索
+- 支持三种搜索引擎切换：Bing、Google、百度
+- 按 `/` 键快速聚焦搜索框
+- 按 Enter 键直接搜索
+
+### 壁纸功能
+- 每次打开新标签页会自动加载一张新的必应每日精选壁纸
+- 点击右下角的 🖼️ 按钮可手动切换壁纸
+
+### 自定义图标
+- 点击页面中的「添加」按钮可添加自定义网站快捷方式
+- 可以为每个网站指定名称、网址和图标
+- 图标支持 [Font Awesome](https://fontawesome.com/search?o=r&m=free) 中的免费图标
+- 将鼠标悬停在已有图标上，点击出现的 ❌ 按钮可删除该图标
+
+## 技术栈
+
 - HTML5
-- CSS3（包含毛玻璃效果、动画等现代特性）
+- CSS3（含毛玻璃效果、响应式布局）
 - JavaScript（ES6+）
-- Font Awesome 图标库
-- Bing 壁纸 API
+- Font Awesome 6.4.0 图标库
+- Chrome Extension Manifest V3
 
-### 核心功能代码结构
+## 截图预览
 
-#### 时间显示模块
-```javascript
-function updateClock() {
-    const now = new Date();
-    // 时间格式化 HH:MM:SS
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    const s = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('clock').innerText = `${h}:${m}:${s}`;
-    
-    // 日期格式化
-    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-    document.getElementById('date').innerText = now.toLocaleDateString('zh-CN', options);
-}
-```
+![预览图](demo.png)
 
-#### 搜索功能模块
-```javascript
-function performSearch() {
-    const engine = engineSelect.value;
-    const query = document.getElementById('searchInput').value;
-    if (!query) return;
-
-    let url = '';
-    if (engine === 'google') url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-    else if (engine === 'bing') url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
-    else if (engine === 'baidu') url = `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`;
-
-    window.open(url, '_blank');
-}
-```
-
-#### 网站快捷方式渲染
-```javascript
-const appConfig = [
-    { name: "天气", url: "https://weather.com/zh-CN/", content: "fa-solid fa-cloud-sun" },
-    { name: "日历", url: "https://calendar.google.com", content: "fa-regular fa-calendar-check" },
-    // ...其他网站配置
-];
-
-function renderApps() {
-    const grid = document.getElementById('appGrid');
-    grid.innerHTML = ''; 
-
-    appConfig.forEach(app => {
-        const a = document.createElement('a');
-        a.className = 'app-item';
-        a.href = app.url;
-        a.target = '_blank';
-
-        const iconDiv = document.createElement('div');
-        iconDiv.className = 'app-icon';
-        iconDiv.innerHTML = `<i class="${app.content}"></i>`;
-
-        const span = document.createElement('span');
-        span.className = 'app-name';
-        span.innerText = app.name;
-
-        a.appendChild(iconDiv);
-        a.appendChild(span);
-        grid.appendChild(a);
-    });
-}
-```
-
-## 自定义配置
-
-### 添加/修改网站快捷方式
-在 `appConfig` 数组中添加或修改网站配置项：
-
-```javascript
-{
-  name: "网站名称",      // 显示在图标下方的名称
-  url: "https://...",   // 网站链接地址
-  content: "fa-..."     // Font Awesome 图标类名
-}
-```
-
-### 修改搜索引擎
-在 HTML 的 [select](file:///D:/dev/newTab/index.html#L151-L157) 元素中添加新的选项，并在 JavaScript 的 `performSearch()` 函数中添加相应的处理逻辑。
-
-## 使用方法
-
-1. 将该文件设置为浏览器的新标签页（具体方法因浏览器而异）：
-   - Chrome/Edge: 安装 "Custom New Tab" 类扩展程序，或替换浏览器新标签页文件
-   - Firefox: 在设置中指定新标签页 URL
-
-2. 直接在浏览器中打开该文件使用
-
-## 浏览器兼容性
-
-- Chrome 60+
-- Firefox 54+
-- Edge 79+
-- Safari 11+
-
-## 注意事项
-
-1. 背景图片来源于 Bing 每日壁纸 API，需要网络连接才能正常显示
-2. 搜索引擎选择会保存在浏览器本地存储中
-3. 所有网站链接都会在新标签页中打开
+*注：截图仅供参考，实际效果以最新版本为准*
 
 ## 许可证
 
-该项目仅供个人使用，如需用于商业用途请遵守相关法律法规。
+MIT License
+
+## 贡献者
+
+- [你的名字]
+
+## 联系方式
+
+如有任何问题或建议，请通过以下方式联系：
+- 提交 Issue
+- 发送邮件至 [your-email@example.com]
