@@ -1,16 +1,36 @@
 // --- 默认配置 (如果用户第一次使用) ---
 const defaultApps = [
     { name: "天气", url: "https://weather.com/zh-CN/", content: "fa-solid fa-cloud-sun" },
+    { name: "日历", url: "https://calendar.google.com", content: "fa-regular fa-calendar-check" },
     { name: "Bilibili", url: "https://www.bilibili.com", content: "fa-brands fa-bilibili" },
+    { name: "微博", url: "https://weibo.com", content: "fa-brands fa-weibo" },
     { name: "GitHub", url: "https://github.com", content: "fa-brands fa-github" },
     { name: "知乎", url: "https://www.zhihu.com", content: "fa-brands fa-zhihu" },
     { name: "YouTube", url: "https://www.youtube.com", content: "fa-brands fa-youtube" },
     { name: "ChatGPT", url: "https://chat.openai.com", content: "fa-solid fa-robot" },
+    { name: "Gmail", url: "https://mail.google.com", content: "fa-solid fa-envelope" },
+    { name: "淘宝", url: "https://www.taobao.com", content: "fa-solid fa-bag-shopping" },
+    { name: "X", url: "https://x.com", content: "fa-brands fa-twitter" },
+    { name: "V2EX", url: "https://v2ex.com", content: "fa-solid fa-layer-group" },
 ];
 
 let currentApps = [];
+// 缓存DOM元素以提高性能
+let domCache = {};
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 缓存常用的DOM元素
+    domCache = {
+        clock: document.getElementById('clock'),
+        date: document.getElementById('date'),
+        engineSelect: document.getElementById('searchEngine'),
+        searchInput: document.getElementById('searchInput'),
+        searchBtn: document.getElementById('searchBtn'),
+        appGrid: document.getElementById('appGrid'),
+        appModal: document.getElementById('appModal'),
+        refreshWallpaper: document.getElementById('refreshWallpaper')
+    };
+    
     initClock();
     initSearch();
     initApps();
@@ -24,10 +44,10 @@ function initClock() {
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+        domCache.clock.textContent = `${h}:${m}:${s}`;
         
         const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-        document.getElementById('date').innerText = now.toLocaleDateString('zh-CN', options);
+        domCache.date.textContent = now.toLocaleDateString('zh-CN', options);
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -35,9 +55,7 @@ function initClock() {
 
 // --- 2. 搜索功能 ---
 function initSearch() {
-    const engineSelect = document.getElementById('searchEngine');
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
+    const { engineSelect, searchInput, searchBtn } = domCache;
 
     // 读取引擎设置
     if(localStorage.getItem('defaultEngine')) {
@@ -89,7 +107,7 @@ function initApps() {
     });
 
     // 2. 模态框按钮逻辑
-    const modal = document.getElementById('appModal');
+    const { appModal } = domCache;
     const saveBtn = document.getElementById('saveBtn');
     const cancelBtn = document.getElementById('cancelBtn');
 
@@ -106,16 +124,16 @@ function initApps() {
     // --- 新增：实时预览逻辑 END ---
 
     saveBtn.addEventListener('click', saveNewApp);
-    cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    cancelBtn.addEventListener('click', () => { appModal.style.display = 'none'; });
     
     window.addEventListener('click', (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === appModal) appModal.style.display = 'none';
     });
 }
 
 function renderApps() {
-    const grid = document.getElementById('appGrid');
-    grid.innerHTML = '';
+    const { appGrid } = domCache;
+    appGrid.innerHTML = '';
 
     // 渲染现有图标
     currentApps.forEach((app, index) => {
@@ -142,14 +160,14 @@ function renderApps() {
         
         const span = document.createElement('span');
         span.className = 'app-name';
-        span.innerText = app.name;
+        span.textContent = app.name;
 
         a.appendChild(iconDiv);
         a.appendChild(span);
         
         wrapper.appendChild(delBtn);
         wrapper.appendChild(a);
-        grid.appendChild(wrapper);
+        appGrid.appendChild(wrapper);
     });
 
     // 渲染 "添加" 按钮
@@ -163,11 +181,11 @@ function renderApps() {
 
     const addSpan = document.createElement('span');
     addSpan.className = 'app-name';
-    addSpan.innerText = '添加';
+    addSpan.textContent = '添加';
 
     addWrapper.appendChild(addIconDiv);
     addWrapper.appendChild(addSpan);
-    grid.appendChild(addWrapper);
+    appGrid.appendChild(addWrapper);
 }
 
 function deleteApp(index) {
@@ -189,7 +207,7 @@ function openAddModal() {
     // 重置为问号
     document.querySelector('#iconPreview i').className = 'fa-solid fa-circle-question';
     
-    document.getElementById('appModal').style.display = 'flex';
+    domCache.appModal.style.display = 'flex';
     
     // 自动聚焦第一个输入框
     setTimeout(() => document.getElementById('appName').focus(), 100);
@@ -211,7 +229,7 @@ function saveNewApp() {
 
     currentApps.push({ name, url, content: icon });
     saveToStorage();
-    document.getElementById('appModal').style.display = 'none';
+    domCache.appModal.style.display = 'none';
     renderApps();
 }
 
@@ -221,15 +239,19 @@ function saveToStorage() {
 
 // --- 4. 壁纸刷新功能 ---
 function initWallpaper() {
-    const refreshBtn = document.getElementById('refreshWallpaper');
+    const { refreshWallpaper } = domCache;
     
     // 初始加载
     setRandomWallpaper();
 
-    refreshBtn.addEventListener('click', () => {
+    refreshWallpaper.addEventListener('click', () => {
         // 添加旋转动画类
-        refreshBtn.style.transform = 'rotate(360deg)';
-        setTimeout(() => refreshBtn.style.transform = 'none', 300);
+        refreshWallpaper.style.transition = 'transform 0.3s ease';
+        refreshWallpaper.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+            refreshWallpaper.style.transition = '';
+            refreshWallpaper.style.transform = '';
+        }, 300);
         setRandomWallpaper();
     });
 }
@@ -246,5 +268,10 @@ function setRandomWallpaper() {
     img.src = bgUrl;
     img.onload = () => {
         document.body.style.backgroundImage = `url('${bgUrl}')`;
+    };
+    img.onerror = () => {
+        // 如果图片加载失败，则使用默认背景
+        document.body.style.backgroundColor = '#333';
+        document.body.style.backgroundImage = 'none';
     };
 }
