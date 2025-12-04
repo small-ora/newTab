@@ -17,6 +17,9 @@ const defaultApps = [
 let currentApps = [];
 // 缓存DOM元素以提高性能
 let domCache = {};
+// 用于节流的变量
+let lastRenderTime = 0;
+const RENDER_INTERVAL = 16; // 约60fps
 
 document.addEventListener('DOMContentLoaded', () => {
     // 缓存常用的DOM元素
@@ -49,8 +52,16 @@ function initClock() {
         const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
         domCache.date.textContent = now.toLocaleDateString('zh-CN', options);
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    
+    // 使用 requestAnimationFrame 来优化时钟更新
+    function animateClock() {
+        updateClock();
+        requestAnimationFrame(animateClock);
+    }
+    
+    // 仍然保留 setInterval 作为备选方案
+    // setInterval(updateClock, 1000);
+    requestAnimationFrame(animateClock);
 }
 
 // --- 2. 搜索功能 ---
@@ -131,10 +142,23 @@ function initApps() {
     });
 }
 
+// 优化渲染函数，避免频繁操作DOM
 function renderApps() {
+    const currentTime = performance.now();
+    
+    // 节流处理，避免过于频繁的渲染
+    if (currentTime - lastRenderTime < RENDER_INTERVAL) {
+        // 如果距离上次渲染时间太短，则延迟执行
+        setTimeout(renderApps, RENDER_INTERVAL);
+        return;
+    }
+    
+    lastRenderTime = currentTime;
     const { appGrid } = domCache;
-    appGrid.innerHTML = '';
-
+    
+    // 使用文档片段减少重排次数
+    const fragment = document.createDocumentFragment();
+    
     // 渲染现有图标
     currentApps.forEach((app, index) => {
         const wrapper = document.createElement('div');
@@ -167,7 +191,7 @@ function renderApps() {
         
         wrapper.appendChild(delBtn);
         wrapper.appendChild(a);
-        appGrid.appendChild(wrapper);
+        fragment.appendChild(wrapper);
     });
 
     // 渲染 "添加" 按钮
@@ -185,7 +209,11 @@ function renderApps() {
 
     addWrapper.appendChild(addIconDiv);
     addWrapper.appendChild(addSpan);
-    appGrid.appendChild(addWrapper);
+    fragment.appendChild(addWrapper);
+    
+    // 一次性更新DOM
+    appGrid.innerHTML = '';
+    appGrid.appendChild(fragment);
 }
 
 function deleteApp(index) {
@@ -266,12 +294,19 @@ function setRandomWallpaper() {
     // 创建一个 img 对象预加载，防止背景闪烁白屏
     const img = new Image();
     img.src = bgUrl;
+    
+    // 使用CSS类控制加载状态以提升性能
+    document.body.classList.add('loading-wallpaper');
+    
     img.onload = () => {
         document.body.style.backgroundImage = `url('${bgUrl}')`;
+        document.body.classList.remove('loading-wallpaper');
     };
+    
     img.onerror = () => {
         // 如果图片加载失败，则使用默认背景
         document.body.style.backgroundColor = '#333';
         document.body.style.backgroundImage = 'none';
+        document.body.classList.remove('loading-wallpaper');
     };
 }

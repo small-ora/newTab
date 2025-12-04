@@ -30,6 +30,22 @@ body {
     position: relative;
     /* 使用transform而不是background-image过渡来提升性能 */
     transition: background-image 0.3s ease;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    will-change: background-image;
+}
+
+body.loading-wallpaper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: -1;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 body::before {
@@ -39,6 +55,8 @@ body::before {
     background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
     z-index: -1;
     backdrop-filter: blur(1px);
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 /* --- 2. 时钟区域 --- */
@@ -47,6 +65,9 @@ body::before {
     margin-bottom: 40px;
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     animation: fadeInDown 0.5s ease-out;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    will-change: opacity, transform;
 }
 
 .time {
@@ -55,6 +76,8 @@ body::before {
     letter-spacing: 2px;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .date {
@@ -62,6 +85,8 @@ body::before {
     margin-top: 10px;
     opacity: 0.9;
     font-weight: 300;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 /* --- 3. 搜索框区域 --- */
@@ -86,6 +111,7 @@ body::before {
     /* 启用硬件加速 */
     transform: translateZ(0);
     transition: all 0.2s ease;
+    will-change: transform, background, box-shadow;
 }
 
 .search-box:focus-within, .search-box:hover {
@@ -106,6 +132,8 @@ body::before {
     font-weight: 600;
     appearance: none;
     text-align: center;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .engine-select option {
@@ -121,10 +149,14 @@ body::before {
     background: transparent;
     outline: none;
     color: #fff;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .search-input::placeholder {
     color: rgba(255, 255, 255, 0.7);
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .search-btn {
@@ -143,6 +175,7 @@ body::before {
     margin-right: 2px;
     /* 启用硬件加速 */
     transform: translateZ(0);
+    will-change: background;
 }
 
 .search-btn:hover {
@@ -158,6 +191,9 @@ body::before {
     max-width: 850px;
     padding: 20px;
     animation: fadeInUp 0.5s ease-out;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
+    will-change: opacity, transform;
 }
 
 .app-item-wrapper {
@@ -168,6 +204,7 @@ body::before {
     /* 启用硬件加速 */
     transform: translateZ(0);
     transition: transform 0.2s ease;
+    will-change: transform;
 }
 
 .app-item-wrapper:hover {
@@ -182,6 +219,8 @@ body::before {
     color: white;
     width: 100%;
     cursor: pointer;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .app-icon {
@@ -200,6 +239,7 @@ body::before {
     /* 启用硬件加速 */
     transform: translateZ(0);
     transition: all 0.2s ease;
+    will-change: background, box-shadow;
 }
 
 .app-item-wrapper:hover .app-icon {
@@ -212,6 +252,7 @@ body::before {
     /* 启用硬件加速 */
     transform: translateZ(0);
     transition: all 0.2s ease;
+    will-change: color, text-shadow;
 }
 
 .app-item-wrapper:hover .app-icon i {
@@ -227,6 +268,7 @@ body::before {
     opacity: 0.9;
     /* 启用硬件加速 */
     transform: translateZ(0);
+    will-change: opacity;
 }
 
 /* 删除按钮 (鼠标悬停显示) */
@@ -250,6 +292,7 @@ body::before {
     transition: opacity 0.2s;
     border: none;
     z-index: 5;
+    will-change: opacity;
 }
 
 .app-item-wrapper:hover .delete-btn {
@@ -260,6 +303,8 @@ body::before {
 .add-item .app-icon {
     border: 2px dashed rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.05);
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 /* --- 5. 右下角刷新壁纸按钮 --- */
@@ -283,6 +328,7 @@ body::before {
     align-items: center;
     justify-content: center;
     z-index: 100;
+    will-change: transform, background;
 }
 
 .refresh-wp-btn:hover {
@@ -305,6 +351,7 @@ body::before {
     justify-content: center;
     /* 启用硬件加速 */
     transform: translateZ(0);
+    will-change: opacity;
 }
 
 .modal-content {
@@ -318,6 +365,7 @@ body::before {
     text-align: center;
     /* 启用硬件加速 */
     transform: translateZ(0);
+    will-change: transform;
 }
 
 .modal-content input {
@@ -329,6 +377,8 @@ body::before {
     background: #222;
     color: white;
     outline: none;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .modal-content .hint {
@@ -336,6 +386,8 @@ body::before {
     color: #aaa;
     margin-bottom: 20px;
     text-align: left;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .modal-buttons {
@@ -353,6 +405,7 @@ body::before {
     /* 启用硬件加速 */
     transform: translateZ(0);
     transition: all 0.2s ease;
+    will-change: background, transform;
 }
 
 .btn-cancel {
@@ -413,6 +466,8 @@ body::before {
 .icon-control-group {
     margin: 15px 0 5px 0;
     text-align: left;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .input-header {
@@ -422,6 +477,8 @@ body::before {
     margin-bottom: 5px;
     font-size: 14px;
     color: #ddd;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 .find-icon-link {
@@ -431,6 +488,7 @@ body::before {
     transition: color 0.2s;
     /* 启用硬件加速 */
     transform: translateZ(0);
+    will-change: color;
 }
 
 .find-icon-link:hover {
@@ -442,12 +500,16 @@ body::before {
     display: flex;
     gap: 10px;
     align-items: center;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 /* 调整输入框宽度，给预览框腾位置 */
 .icon-input-wrapper input {
     margin: 0; /* 重置 margin */
     flex: 1;
+    /* 启用硬件加速 */
+    transform: translateZ(0);
 }
 
 /* 预览框样式：模仿主界面的图标风格 */
