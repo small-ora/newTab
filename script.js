@@ -31,14 +31,57 @@ document.addEventListener('DOMContentLoaded', () => {
         searchBtn: document.getElementById('searchBtn'),
         appGrid: document.getElementById('appGrid'),
         appModal: document.getElementById('appModal'),
-        refreshWallpaper: document.getElementById('refreshWallpaper')
+        refreshWallpaper: document.getElementById('refreshWallpaper'),
+        toggleEditBtn: document.getElementById('toggleEditBtn')
     };
     
     initClock();
     initSearch();
     initApps();
     initWallpaper();
+    initEditMode();
 });
+
+// --- 新增：编辑模式 ---
+function initEditMode() {
+    const { toggleEditBtn, appGrid } = domCache;
+    
+    toggleEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止冒泡触发 body 点击
+        toggleEditState();
+    });
+    
+    // 点击空白处退出编辑模式
+    document.addEventListener('click', (e) => {
+        if (appGrid.classList.contains('editing')) {
+            // 如果点击的不是删除按钮、不是添加按钮、不是模态框内部
+            if (!e.target.closest('.delete-btn') && 
+                !e.target.closest('.add-item') && 
+                !e.target.closest('.modal-content') &&
+                !e.target.closest('.edit-mode-btn')) { // 排除自己
+                
+                toggleEditState(false); // 强制关闭
+            }
+        }
+    });
+}
+
+function toggleEditState(forceState) {
+    const { appGrid, toggleEditBtn } = domCache;
+    const isEditing = typeof forceState === 'boolean' ? forceState : !appGrid.classList.contains('editing');
+    
+    if (isEditing) {
+        appGrid.classList.add('editing');
+        toggleEditBtn.classList.add('active');
+        toggleEditBtn.innerHTML = '<i class="fa-solid fa-check"></i>'; // 变为打钩
+        enableDrag(); // 启用拖拽
+    } else {
+        appGrid.classList.remove('editing');
+        toggleEditBtn.classList.remove('active');
+        toggleEditBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>'; // 变回笔
+        disableDrag(); // 禁用拖拽
+    }
+}
 
 // --- 1. 时钟功能 ---
 function initClock() {
@@ -172,6 +215,16 @@ function renderApps() {
     currentApps.forEach((app, index) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'app-item-wrapper';
+        // 标记索引，方便拖拽查找
+        wrapper.dataset.index = index;
+
+        // --- 拖拽事件 ---
+        wrapper.addEventListener('dragstart', handleDragStart);
+        wrapper.addEventListener('dragover', handleDragOver);
+        wrapper.addEventListener('drop', handleDrop);
+        wrapper.addEventListener('dragenter', handleDragEnter);
+        wrapper.addEventListener('dragleave', handleDragLeave);
+        wrapper.addEventListener('dragend', handleDragEnd);
 
         // 删除按钮
         const delBtn = document.createElement('button');
@@ -186,6 +239,14 @@ function renderApps() {
         const a = document.createElement('a');
         a.className = 'app-item';
         a.href = app.url;
+        a.target = '_blank'; // 新标签页打开
+        
+        // 核心拦截：编辑模式下阻止跳转
+        a.addEventListener('click', (e) => {
+            if (domCache.appGrid.classList.contains('editing')) {
+                e.preventDefault();
+            }
+        });
         
         const iconDiv = document.createElement('div');
         iconDiv.className = 'app-icon';
@@ -223,6 +284,80 @@ function renderApps() {
     // 一次性更新DOM
     appGrid.innerHTML = '';
     appGrid.appendChild(fragment);
+    
+    // 恢复之前的编辑状态（因为重绘会丢失状态）
+    if (domCache.appGrid.classList.contains('editing')) {
+        enableDrag();
+    }
+}
+
+// --- 拖拽处理函数 ---
+let dragSrcEl = null;
+
+function handleDragStart(e) {
+    if (!domCache.appGrid.classList.contains('editing')) {
+        e.preventDefault();
+        return false;
+    }
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    this.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    this.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+    
+    const targetWrapper = this; // 目标元素
+    
+    if (dragSrcEl !== targetWrapper) {
+        const srcIndex = parseInt(dragSrcEl.dataset.index);
+        const targetIndex = parseInt(targetWrapper.dataset.index);
+        
+        // 调整数组顺序
+        const movedItem = currentApps[srcIndex];
+        currentApps.splice(srcIndex, 1);
+        currentApps.splice(targetIndex, 0, movedItem);
+        
+        saveToStorage();
+        renderApps();
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    // 清理所有 hover 样式
+    document.querySelectorAll('.app-item-wrapper').forEach(item => {
+        item.classList.remove('drag-over');
+    });
+}
+
+// 辅助：启用/禁用拖拽属性
+function enableDrag() {
+    document.querySelectorAll('.app-item-wrapper:not(.add-item)').forEach(el => {
+        el.setAttribute('draggable', 'true');
+    });
+}
+
+function disableDrag() {
+    document.querySelectorAll('.app-item-wrapper').forEach(el => {
+        el.removeAttribute('draggable');
+    });
 }
 
 function deleteApp(index) {

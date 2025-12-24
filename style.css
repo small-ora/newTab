@@ -418,7 +418,139 @@ body.loading-wallpaper::after {
     transform: scale(0.95) rotate(90deg);
 }
 
-/* --- 6. 模态框 (Modal) 动画优化 --- */
+.refresh-wp-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* --- 6. 左下角编辑模式按钮 --- */
+.edit-mode-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-bounce);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.edit-mode-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.edit-mode-btn.active {
+    background: #007bff;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
+}
+
+/* --- 编辑模式状态 --- */
+
+/* 默认隐藏添加按钮 */
+.app-grid:not(.editing) .add-item {
+    display: none;
+}
+
+/* 默认隐藏删除按钮 */
+.delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4757;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0); /* 默认完全缩小 */
+    transition: all 0.3s var(--ease-bounce);
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10;
+    pointer-events: none; /* 防止误触 */
+}
+
+/* 确保 hover 时也不会显示 (双重保险) */
+.app-item-wrapper:not(.editing) .delete-btn {
+    display: none !important;
+}
+
+/* 编辑模式下显示删除按钮 */
+.app-grid.editing .delete-btn {
+    display: flex !important;
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+    animation: popIn 0.3s var(--ease-bounce);
+}
+
+/* --- 拖拽排序样式 --- */
+.app-item-wrapper.dragging {
+    opacity: 0.4;
+    transform: scale(0.9);
+}
+
+.app-item-wrapper.drag-over {
+    transform: scale(1.05); /* 经过时放大提示 */
+    z-index: 20;
+}
+
+.app-item-wrapper.drag-over .app-icon {
+    border-color: #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+}
+
+/* 编辑模式下图标抖动 */
+.app-grid.editing .app-icon {
+    animation: shake 0.3s infinite;
+}
+
+/* 编辑模式下禁止图标跳转（JS控制，视觉上cursor变化） */
+.app-grid.editing .app-item {
+    cursor: default;
+}
+
+@keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(1deg); }
+    75% { transform: rotate(-1deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+/* 浅色模式适配新增按钮 */
+body.light-mode .edit-mode-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #333;
+    border-color: rgba(0,0,0,0.05);
+}
+body.light-mode .edit-mode-btn.active {
+    background: #007bff;
+    color: white;
+}
+
+/* --- 7. 模态框 (Modal) 动画优化 --- */
 .modal {
     display: none; 
     position: fixed; 
