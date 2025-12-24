@@ -269,8 +269,14 @@ function saveToStorage() {
 function initWallpaper() {
     const { refreshWallpaper } = domCache;
     
-    // 初始加载
-    setRandomWallpaper();
+    // 1. 尝试从缓存加载，实现“秒开”
+    const cachedUrl = localStorage.getItem('wallpaperUrl');
+    if (cachedUrl) {
+        document.body.style.backgroundImage = `url('${cachedUrl}')`;
+    } else {
+        // 无缓存（首次使用），则获取新壁纸
+        setRandomWallpaper();
+    }
 
     refreshWallpaper.addEventListener('click', () => {
         // 添加旋转动画类
@@ -280,33 +286,46 @@ function initWallpaper() {
             refreshWallpaper.style.transition = '';
             refreshWallpaper.style.transform = '';
         }, 300);
-        setRandomWallpaper();
+        
+        // 点击按钮强制刷新
+        setRandomWallpaper(true);
     });
 }
 
-function setRandomWallpaper() {
+function setRandomWallpaper(forceRefresh = false) {
     // Bing 接口支持 index 0-7，我们随机取一个
-    // 为了防止浏览器缓存导致图片不更新，我们加一个随机的时间戳参数
     const randomIndex = Math.floor(Math.random() * 8); 
-    const timestamp = new Date().getTime();
-    const bgUrl = `https://bing.biturl.top/?resolution=1920&format=image&index=${randomIndex}&mkt=zh-CN&t=${timestamp}`;
+    
+    let bgUrl = `https://bing.biturl.top/?resolution=1920&format=image&index=${randomIndex}&mkt=zh-CN`;
+    
+    // 只有强制刷新时才加时间戳，避免破坏浏览器缓存，同时保证获取新图
+    if (forceRefresh) {
+        bgUrl += `&t=${new Date().getTime()}`;
+    }
     
     // 创建一个 img 对象预加载，防止背景闪烁白屏
     const img = new Image();
     img.src = bgUrl;
     
-    // 使用CSS类控制加载状态以提升性能
-    document.body.classList.add('loading-wallpaper');
+    // 仅在没有背景（首次加载且无缓存）或强制刷新时显示加载状态
+    if (!document.body.style.backgroundImage || forceRefresh) {
+        document.body.classList.add('loading-wallpaper');
+    }
     
     img.onload = () => {
         document.body.style.backgroundImage = `url('${bgUrl}')`;
         document.body.classList.remove('loading-wallpaper');
+        // 缓存当前壁纸 URL
+        localStorage.setItem('wallpaperUrl', bgUrl);
     };
     
     img.onerror = () => {
-        // 如果图片加载失败，则使用默认背景
-        document.body.style.backgroundColor = '#333';
-        document.body.style.backgroundImage = 'none';
+        // 如果图片加载失败
+        console.error('Wallpaper load failed');
         document.body.classList.remove('loading-wallpaper');
+        // 如果当前没有背景，使用默认色
+        if (!document.body.style.backgroundImage) {
+            document.body.style.backgroundColor = '#333';
+        }
     };
 }
