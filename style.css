@@ -1,9 +1,17 @@
 /* --- 1. 全局定义 --- */
 :root {
-    --glass-bg: rgba(255, 255, 255, 0.15);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    /* 更加细腻的玻璃质感变量 */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-bg-hover: rgba(255, 255, 255, 0.18);
+    --glass-border: rgba(255, 255, 255, 0.15);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     --text-color: #ffffff;
+    
+    /* 核心优化：更跟手的动画曲线 */
+    /* 弹跳曲线：用于图标悬停、弹出框 */
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* 平滑曲线：用于常规颜色、背景过渡 */
+    --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 * {
@@ -11,12 +19,12 @@
     margin: 0;
     padding: 0;
     user-select: none;
+    -webkit-font-smoothing: antialiased; /* 让字体在 Mac/Win 上更清晰 */
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    /* 默认背景，JS会覆盖它 */
-    background-color: #333; 
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #1a1a1a; 
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
@@ -28,112 +36,98 @@ body {
     justify-content: center;
     color: var(--text-color);
     position: relative;
-    /* 使用transform而不是background-image过渡来提升性能 */
-    transition: background-image 0.3s ease;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: background-image;
+    transition: background-image 0.5s var(--ease-smooth);
+    overflow: hidden; /* 防止滚动条出现 */
+}
+
+/* 背景遮罩，提升文字可读性 */
+body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 100%);
+    z-index: -1;
+    pointer-events: none;
 }
 
 body.loading-wallpaper::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: -1;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-}
-
-body::before {
-    content: '';
-    position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
+    background: rgba(0, 0, 0, 0.2);
     z-index: -1;
-    backdrop-filter: blur(1px);
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    backdrop-filter: blur(10px);
+    transition: opacity 0.5s ease;
 }
 
 /* --- 2. 时钟区域 --- */
 .clock-container {
     text-align: center;
-    margin-bottom: 40px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    animation: fadeInDown 0.5s ease-out;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: opacity, transform;
+    margin-bottom: 5vh; /* 使用 vh 让布局更响应 */
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    animation: fadeInDown 0.8s var(--ease-bounce);
+    cursor: default;
 }
 
 .time {
-    font-size: 5rem;
-    font-weight: 200;
-    letter-spacing: 2px;
+    font-size: 6rem;
+    font-weight: 600;
+    letter-spacing: -2px;
     line-height: 1;
     font-variant-numeric: tabular-nums;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
 }
 
 .date {
-    font-size: 1.2rem;
-    margin-top: 10px;
-    opacity: 0.9;
-    font-weight: 300;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    font-size: 1.1rem;
+    margin-top: 8px;
+    opacity: 0.8;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 /* --- 3. 搜索框区域 --- */
 .search-container {
     width: 100%;
-    max-width: 680px;
-    margin-bottom: 50px;
+    max-width: 620px;
+    margin-bottom: 6vh;
     position: relative;
     z-index: 10;
+    padding: 0 20px;
 }
 
 .search-box {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 50px;
-    padding: 8px;
-    box-shadow: var(--glass-shadow);
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: all 0.2s ease;
-    will-change: transform, background, box-shadow;
+    border-radius: 20px; /* 更现代的圆角 */
+    padding: 6px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s var(--ease-smooth);
 }
 
-.search-box:focus-within, .search-box:hover {
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-    transform: translateY(-2px) translateZ(0);
+/* 搜索框悬停与聚焦动效 */
+.search-box:hover, .search-box:focus-within {
+    background: var(--glass-bg-hover);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
 }
 
 .engine-select {
     border: none;
     background: transparent;
-    padding: 10px 15px;
+    padding: 0 15px;
     cursor: pointer;
-    font-size: 16px;
-    border-right: 1px solid rgba(255,255,255,0.3);
+    font-size: 15px;
+    border-right: 1px solid rgba(255,255,255,0.2);
     outline: none;
-    color: #fff;
-    font-weight: 600;
-    appearance: none;
-    text-align: center;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+    height: 40px;
 }
 
 .engine-select option {
@@ -144,56 +138,53 @@ body::before {
 .search-input {
     flex: 1;
     border: none;
-    padding: 12px 15px;
-    font-size: 18px;
+    padding: 0 15px;
+    font-size: 16px;
+    height: 44px;
     background: transparent;
     outline: none;
     color: #fff;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    font-weight: 500;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
 }
 
 .search-btn {
     border: none;
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
     cursor: pointer;
     font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
-    margin-right: 2px;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: background;
+    transition: all 0.2s var(--ease-smooth);
 }
 
 .search-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.search-btn:active {
+    transform: scale(0.92);
 }
 
 /* --- 4. 图标网格区域 --- */
 .app-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 25px;
+    gap: 30px 20px;
     width: 100%;
-    max-width: 850px;
+    max-width: 800px;
     padding: 20px;
-    animation: fadeInUp 0.5s ease-out;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: opacity, transform;
+    animation: fadeInUp 0.8s var(--ease-bounce) 0.1s backwards;
 }
 
 .app-item-wrapper {
@@ -201,14 +192,17 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: transform 0.2s ease;
-    will-change: transform;
+    transition: transform 0.4s var(--ease-bounce);
+}
+
+/* 核心交互：所有可点击元素的“按下”效果 */
+.app-item-wrapper:active {
+    transform: scale(0.95) !important; /* 优先级覆盖 hover */
 }
 
 .app-item-wrapper:hover {
-    transform: translateY(-8px) translateZ(0);
+    transform: translateY(-6px);
+    z-index: 5;
 }
 
 .app-item {
@@ -219,67 +213,81 @@ body::before {
     color: white;
     width: 100%;
     cursor: pointer;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
 }
 
 .app-icon {
-    width: 64px;
-    height: 64px;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 22px;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px; /* iOS 风格圆角 */
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    font-size: 30px;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: all 0.2s ease;
-    will-change: background, box-shadow;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-size: 26px;
+    transition: all 0.4s var(--ease-bounce);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 图标光泽效果 */
+.app-icon::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .app-item-wrapper:hover .app-icon {
     background: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.app-item-wrapper:hover .app-icon::after {
+    opacity: 1;
 }
 
 .app-icon i {
     color: rgba(255, 255, 255, 0.9);
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: all 0.2s ease;
-    will-change: color, text-shadow;
+    transition: transform 0.4s var(--ease-bounce);
 }
 
 .app-item-wrapper:hover .app-icon i {
     color: #fff;
-    text-shadow: 0 0 10px rgba(255,255,255,0.6);
+    transform: scale(1.1);
 }
 
 .app-name {
-    font-size: 14px;
-    font-weight: 400;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    letter-spacing: 0.5px;
-    opacity: 0.9;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: opacity;
+    font-size: 13px;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    opacity: 0.8;
+    transition: opacity 0.3s;
 }
 
-/* 删除按钮 (鼠标悬停显示) */
+.app-item-wrapper:hover .app-name {
+    opacity: 1;
+}
+
+/* 删除按钮 */
 .delete-btn {
     position: absolute;
-    top: -5px;
-    right: 5px;
-    background: rgba(255, 59, 48, 0.9);
+    top: -8px;
+    right: -8px;
+    background: #ff4757;
     color: white;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     font-size: 12px;
     display: flex;
@@ -287,24 +295,32 @@ body::before {
     justify-content: center;
     cursor: pointer;
     opacity: 0;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: opacity 0.2s;
-    border: none;
-    z-index: 5;
-    will-change: opacity;
+    transform: scale(0.5);
+    transition: all 0.3s var(--ease-bounce);
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 10;
 }
 
 .app-item-wrapper:hover .delete-btn {
     opacity: 1;
+    transform: scale(1);
 }
 
-/* 添加按钮样式 */
+.delete-btn:hover {
+    background: #ff6b81;
+    transform: scale(1.1) !important;
+}
+
+/* 添加按钮特殊样式 */
 .add-item .app-icon {
-    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.25);
     background: rgba(255, 255, 255, 0.05);
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+}
+
+.add-item:hover .app-icon {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* --- 5. 右下角刷新壁纸按钮 --- */
@@ -312,31 +328,33 @@ body::before {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
     font-size: 18px;
     cursor: pointer;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: all 0.2s ease;
+    transition: all 0.4s var(--ease-bounce);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    will-change: transform, background;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .refresh-wp-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: rotate(180deg) translateZ(0);
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1) rotate(90deg);
 }
 
-/* --- 6. 模态框 (Modal) --- */
+.refresh-wp-btn:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* --- 6. 模态框 (Modal) 动画优化 --- */
 .modal {
     display: none; 
     position: fixed; 
@@ -345,84 +363,138 @@ body::before {
     top: 0;
     width: 100%; 
     height: 100%; 
-    background-color: rgba(0,0,0,0.5); 
-    backdrop-filter: blur(5px);
+    background-color: rgba(0,0,0,0.6); 
+    backdrop-filter: blur(8px);
     align-items: center;
     justify-content: center;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: opacity;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-smooth);
+}
+
+/* 当模态框激活时 */
+.modal.show {
+    display: flex;
+    opacity: 1;
 }
 
 .modal-content {
-    background: rgba(30, 30, 30, 0.9);
+    background: #252525;
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 30px;
-    border-radius: 20px;
-    width: 350px;
+    border-radius: 24px;
+    width: 360px;
     color: white;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
     text-align: center;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: transform;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s var(--ease-bounce);
+}
+
+.modal.show .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
 }
 
 .modal-content input {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background: #222;
+    padding: 12px 15px;
+    margin: 8px 0;
+    border-radius: 12px;
+    border: 1px solid #3d3d3d;
+    background: #1a1a1a;
     color: white;
     outline: none;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    font-size: 14px;
+    transition: border-color 0.2s;
 }
 
-.modal-content .hint {
-    font-size: 12px;
-    color: #aaa;
-    margin-bottom: 20px;
+.modal-content input:focus {
+    border-color: #007bff;
+}
+
+.icon-control-group {
+    margin-top: 15px;
+    margin-bottom: 10px;
     text-align: left;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+}
+
+.input-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #888;
+}
+
+.icon-input-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.icon-preview-box {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    background: #1a1a1a;
+    border: 1px solid #3d3d3d;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    transition: all 0.2s;
 }
 
 .modal-buttons {
     display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+    gap: 15px;
+    margin-top: 25px;
 }
 
 .modal-buttons button {
-    padding: 8px 20px;
-    border-radius: 8px;
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
-    font-weight: bold;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    transition: all 0.2s ease;
-    will-change: background, transform;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.1s;
+}
+
+.modal-buttons button:active {
+    transform: scale(0.96);
 }
 
 .btn-cancel {
+    background: #3a3a3a;
+    color: #ccc;
+}
+.btn-cancel:hover {
     background: #444;
-    color: white;
+    color: #fff;
 }
 
 .btn-save {
-    background: #007bff;
+    background: #2d7af1;
     color: white;
 }
+.btn-save:hover {
+    background: #3c84f3;
+}
 
-/* --- 动画 --- */
+/* --- 动画关键帧 --- */
 @keyframes fadeInDown {
     from { 
         opacity: 0; 
-        transform: translateY(-20px);
+        transform: translateY(-30px);
     }
     to { 
         opacity: 1; 
@@ -433,7 +505,7 @@ body::before {
 @keyframes fadeInUp {
     from { 
         opacity: 0; 
-        transform: translateY(20px);
+        transform: translateY(30px);
     }
     to { 
         opacity: 1; 
@@ -447,11 +519,8 @@ body::before {
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
     }
-    .search-container {
-        width: 90%;
-    }
     .time {
-        font-size: 3.5rem;
+        font-size: 4.5rem;
     }
 }
 
@@ -459,72 +528,10 @@ body::before {
     .app-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-}
-
-/* --- 新增：图标输入与预览样式 --- */
-
-.icon-control-group {
-    margin: 15px 0 5px 0;
-    text-align: left;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-}
-
-.input-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #ddd;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-}
-
-.find-icon-link {
-    color: #4da3ff;
-    text-decoration: none;
-    font-size: 12px;
-    transition: color 0.2s;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-    will-change: color;
-}
-
-.find-icon-link:hover {
-    color: #8cc5ff;
-    text-decoration: underline;
-}
-
-.icon-input-wrapper {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-}
-
-/* 调整输入框宽度，给预览框腾位置 */
-.icon-input-wrapper input {
-    margin: 0; /* 重置 margin */
-    flex: 1;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
-}
-
-/* 预览框样式：模仿主界面的图标风格 */
-.icon-preview-box {
-    width: 42px;
-    height: 42px;
-    min-width: 42px; /* 防止被压缩 */
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: #fff;
-    /* 启用硬件加速 */
-    transform: translateZ(0);
+    .time {
+        font-size: 3.5rem;
+    }
+    .search-container {
+        width: 92%;
+    }
 }

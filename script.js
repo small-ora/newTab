@@ -135,11 +135,20 @@ function initApps() {
     // --- 新增：实时预览逻辑 END ---
 
     saveBtn.addEventListener('click', saveNewApp);
-    cancelBtn.addEventListener('click', () => { appModal.style.display = 'none'; });
+    cancelBtn.addEventListener('click', closeModal);
     
     window.addEventListener('click', (e) => {
-        if (e.target === appModal) appModal.style.display = 'none';
+        if (e.target === appModal) closeModal();
     });
+}
+
+function closeModal() {
+    const { appModal } = domCache;
+    appModal.classList.remove('show');
+    // 等待 CSS 动画 (0.3s) 结束后隐藏 DOM
+    setTimeout(() => {
+        appModal.style.display = 'none';
+    }, 300);
 }
 
 // 优化渲染函数，避免频繁操作DOM
@@ -235,7 +244,12 @@ function openAddModal() {
     // 重置为问号
     document.querySelector('#iconPreview i').className = 'fa-solid fa-circle-question';
     
-    domCache.appModal.style.display = 'flex';
+    const { appModal } = domCache;
+    appModal.style.display = 'flex';
+    // 强制重绘，确保 transition 生效
+    requestAnimationFrame(() => {
+        appModal.classList.add('show');
+    });
     
     // 自动聚焦第一个输入框
     setTimeout(() => document.getElementById('appName').focus(), 100);
@@ -257,7 +271,7 @@ function saveNewApp() {
 
     currentApps.push({ name, url, content: icon });
     saveToStorage();
-    domCache.appModal.style.display = 'none';
+    closeModal();
     renderApps();
 }
 
