@@ -14,6 +14,70 @@
     --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
+/* --- 浅色模式适配 --- */
+body.light-mode {
+    --text-color: #222;
+    --glass-bg: rgba(0, 0, 0, 0.06);
+    --glass-bg-hover: rgba(0, 0, 0, 0.1);
+    --glass-border: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .time, 
+body.light-mode .date,
+body.light-mode .app-name {
+    text-shadow: none; /* 浅色背景去掉发光文字阴影，显得更干净 */
+    font-weight: 500;
+}
+
+body.light-mode .search-box {
+    background: rgba(255, 255, 255, 0.6); /* 更白的底色 */
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+body.light-mode .engine-select {
+    color: #333;
+    border-right-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode .search-input {
+    color: #333;
+}
+
+body.light-mode .search-input::placeholder {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-mode .search-btn {
+    color: #555;
+}
+body.light-mode .search-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: #000;
+}
+
+body.light-mode .app-icon {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+body.light-mode .app-icon i {
+    color: #333;
+}
+
+body.light-mode .refresh-wp-btn {
+    background: rgba(255, 255, 255, 0.8);
+    color: #333;
+    border-color: rgba(0,0,0,0.05);
+}
+
+/* 删除按钮保持红色，但加个白边 */
+body.light-mode .delete-btn {
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -210,7 +274,7 @@ body.loading-wallpaper::after {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: white;
+    color: inherit; /* 修改：从 white 改为 inherit，随父级变化 */
     width: 100%;
     cursor: pointer;
 }
@@ -269,9 +333,9 @@ body.loading-wallpaper::after {
 
 .app-name {
     font-size: 13px;
-    font-weight: 500;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-    opacity: 0.8;
+    font-weight: 600; /* 加粗 */
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 5px rgba(0,0,0,0.5); /* 增强阴影 */
+    opacity: 0.9;
     transition: opacity 0.3s;
 }
 

@@ -283,17 +283,20 @@ function saveToStorage() {
 function initWallpaper() {
     const { refreshWallpaper } = domCache;
     
-    // 1. 尝试从缓存加载，实现“秒开”
+    // 1. 尝试从缓存加载
     const cachedUrl = localStorage.getItem('wallpaperUrl');
+    const isLightMode = localStorage.getItem('isLightMode') === 'true';
+
     if (cachedUrl) {
         document.body.style.backgroundImage = `url('${cachedUrl}')`;
+        if (isLightMode) {
+            document.body.classList.add('light-mode');
+        }
     } else {
-        // 无缓存（首次使用），则获取新壁纸
         setRandomWallpaper();
     }
 
     refreshWallpaper.addEventListener('click', () => {
-        // 添加旋转动画类
         refreshWallpaper.style.transition = 'transform 0.3s ease';
         refreshWallpaper.style.transform = 'rotate(360deg)';
         setTimeout(() => {
@@ -301,27 +304,22 @@ function initWallpaper() {
             refreshWallpaper.style.transform = '';
         }, 300);
         
-        // 点击按钮强制刷新
         setRandomWallpaper(true);
     });
 }
 
 function setRandomWallpaper(forceRefresh = false) {
-    // Bing 接口支持 index 0-7，我们随机取一个
     const randomIndex = Math.floor(Math.random() * 8); 
-    
     let bgUrl = `https://bing.biturl.top/?resolution=1920&format=image&index=${randomIndex}&mkt=zh-CN`;
     
-    // 只有强制刷新时才加时间戳，避免破坏浏览器缓存，同时保证获取新图
     if (forceRefresh) {
         bgUrl += `&t=${new Date().getTime()}`;
     }
     
-    // 创建一个 img 对象预加载，防止背景闪烁白屏
     const img = new Image();
+    img.crossOrigin = "Anonymous"; // 允许跨域，用于 canvas 分析
     img.src = bgUrl;
     
-    // 仅在没有背景（首次加载且无缓存）或强制刷新时显示加载状态
     if (!document.body.style.backgroundImage || forceRefresh) {
         document.body.classList.add('loading-wallpaper');
     }
@@ -329,17 +327,65 @@ function setRandomWallpaper(forceRefresh = false) {
     img.onload = () => {
         document.body.style.backgroundImage = `url('${bgUrl}')`;
         document.body.classList.remove('loading-wallpaper');
-        // 缓存当前壁纸 URL
         localStorage.setItem('wallpaperUrl', bgUrl);
+        
+        // 计算亮度并应用模式
+        checkBrightness(img);
     };
     
     img.onerror = () => {
-        // 如果图片加载失败
         console.error('Wallpaper load failed');
         document.body.classList.remove('loading-wallpaper');
-        // 如果当前没有背景，使用默认色
         if (!document.body.style.backgroundImage) {
             document.body.style.backgroundColor = '#333';
+            document.body.classList.remove('light-mode');
         }
     };
+}
+
+function checkBrightness(img) {
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 为了性能，只取图片中间的一小块区域进行采样 (100x100)
+        // 或者缩小绘制整张图到 50x50
+        canvas.width = 50;
+        canvas.height = 50;
+        ctx.drawImage(img, 0, 0, 50, 50);
+        
+        const imageData = ctx.getImageData(0, 0, 50, 50);
+        const data = imageData.data;
+        let r, g, b, avg;
+        let colorSum = 0;
+        
+        for (let i = 0, len = data.length; i < len; i += 4) {
+            r = data[i];
+            g = data[i + 1];
+            b = data[i + 2];
+            
+            // 计算感官亮度
+            avg = Math.floor((r * 299 + g * 587 + b * 114) / 1000);
+            colorSum += avg;
+        }
+        
+        const brightness = Math.floor(colorSum / (50 * 50));
+        
+        // 阈值：大于 180 认为是浅色背景（稍微保守一点，因为文字是纯白/纯黑）
+        const isLight = brightness > 160;
+        
+        if (isLight) {
+            document.body.classList.add('light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+        }
+        
+        localStorage.setItem('isLightMode', isLight);
+        
+    } catch (e) {
+        // 如果跨域受限无法读取 canvas，默认使用深色模式（安全回退）
+        console.warn('Cannot analyze image brightness', e);
+        document.body.classList.remove('light-mode');
+        localStorage.setItem('isLightMode', false);
+    }
 }
